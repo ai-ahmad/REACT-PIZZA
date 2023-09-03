@@ -1,9 +1,58 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+const Corzina = () => {
+  let value = localStorage.getItem("product");
+  let [product, setProduct] = useState(JSON.parse(value));
 
-const Corzina = ({ ShopProduct, delitItem, minus }) => {
+  // increment in shop
+  function increment(item) {
+    const updatedProduct = product.map((cartItem) => {
+      if (cartItem.id === item.id) {
+        return { ...cartItem, number: cartItem.number + 1 };
+      }
+      return cartItem;
+    });
+
+    setProduct(updatedProduct);
+    localStorage.setItem("product", JSON.stringify(updatedProduct));
+  }
+  // decrement in shop
+  function decrement(item) {
+  const updatedProduct = product.map((cartItem) => {
+    if (cartItem.id === item.id) {
+      const newNumber = cartItem.number - 1;
+      if (newNumber <= 0) {
+        // If the new number is less than or equal to 0, remove the item from localStorage
+        const updatedLocalStorage = JSON.parse(localStorage.getItem("product")) || [];
+        const updatedLocalStorageWithoutItem = updatedLocalStorage.filter((localStorageItem) => localStorageItem.id !== item.id);
+        localStorage.setItem("product", JSON.stringify(updatedLocalStorageWithoutItem));
+        return null; // Return null to remove the item from the state
+      } else {
+        return { ...cartItem, number: newNumber };
+      }
+    }
+    return cartItem;
+  });
+
+  const filteredUpdatedProduct = updatedProduct.filter((item) => item !== null); // Remove null entries from the state
+  setProduct(filteredUpdatedProduct);
+  localStorage.setItem("product", JSON.stringify(filteredUpdatedProduct));
+}
+
+
+  // Remove item from cart
+  function removeItem(item) {
+    const updatedProduct = product.filter(
+      (cartItem) => cartItem.id !== item.id
+    );
+
+    setProduct(updatedProduct);
+    localStorage.setItem("product", JSON.stringify(updatedProduct));
+  }
+
   return (
-    <div className="bg-white p-10 rounded-2xl relative">
+    <div className="bg-white p-10 rounded-2xl h-[725px]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img src="/img/logo.svg" alt="" />
@@ -15,7 +64,10 @@ const Corzina = ({ ShopProduct, delitItem, minus }) => {
           </div>
         </div>
       </div>
-      {ShopProduct.length === 0 ? (
+
+      {/* compoents 2 */}
+
+      {product.length === 0 ? (
         <div className="h-[588px] flex flex-col items-center justify-center">
           <h4 className="text-3xl font-bold">Корзина пустая 😕</h4>
           <p className="text-[#777] max-w-[547px] w-full text-center text-lg mt-4">
@@ -41,9 +93,9 @@ const Corzina = ({ ShopProduct, delitItem, minus }) => {
               <p className="text-[#B6B6B6]">Очистить корзину</p>
             </div>
           </div>
-          <div className="flex justify-center items-center">
-            <div className="card-wrapper flex flex-col justify-center gap-3  w-[80%] mt-10">
-              {ShopProduct.map((item) => {
+          <div className="flex justify-center items-center h-[400px] overflow-y-scroll  mt-3 mb-5 ">
+            <div className="card-wrapper flex flex-col justify-center gap-10   w-[80%] mt-10">
+              {product.map((item) => {
                 return (
                   <div
                     className="card flex items-center gap-[10%] justify-center"
@@ -56,7 +108,7 @@ const Corzina = ({ ShopProduct, delitItem, minus }) => {
                         className="w-[80px] h-[80px]"
                       />
                       <div>
-                        <h2 className="text-[22px] font-bold">{item.name}</h2>
+                        <h2 className="text-[22px]  font-bold">{item.name}</h2>
                         <p className="text-[#8D8D8D] text-[18px]">
                           тонкое тесто, 26 см.
                         </p>
@@ -65,22 +117,25 @@ const Corzina = ({ ShopProduct, delitItem, minus }) => {
                     <div className="flex items-center gap-4">
                       <button
                         className="w-[40px] h-[40px] rounded-3xl border-2 border-solid border-[#FE5F1E] font-bold text-1xl flex justify-center items-center"
-                        onClick={() => minus(item)}
+                        onClick={() => decrement(item)}
                       >
                         -
                       </button>
                       <h4 className="text-2xl font-bold">{item.number}</h4>
-                      <button className="w-[40px] h-[40px] rounded-3xl border-2 border-solid border-[#FE5F1E] font-bold text-1xl flex justify-center items-center">
+                      <button
+                        className="w-[40px] h-[40px] rounded-3xl border-2 border-solid border-[#FE5F1E] font-bold text-1xl flex justify-center items-center"
+                        onClick={() => increment(item)}
+                      >
                         +
                       </button>
                     </div>
                     <div>
-                      <h2 className="text-[22px] font-extrobold">
-                        {item.price}₽
+                      <h2 className="text-[22px]  w-[61px] font-extrobold">
+                        {item.price * item.number} ₽
                       </h2>
                     </div>
                     <div>
-                      <button onClick={() => delitItem(item)}>
+                      <button onClick={() => removeItem(item)}>
                         <img
                           src="/icon/minus.svg"
                           alt=""
@@ -91,6 +146,33 @@ const Corzina = ({ ShopProduct, delitItem, minus }) => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+          <div className="flex  justify-between">
+            <div className="flex flex-col items-center justify-center gap-3">
+              <h4 className="font-bold">Всего пицц: {product.length} шт.</h4>
+              <Link
+                to="/"
+                className="max-w-[221px] w-full h-[55px] rounded-3xl text-[#CACACA] border-2 border-solid border-[#CACACA] p-3"
+              >
+                Вернуться назад
+              </Link>
+            </div>
+            <div className="flex flex-col items-center justify-center gap-3">
+              <h4 className="font-bold">
+                Сумма заказа:
+                {product
+                  .map((item) => item.price * item.number)
+                  .reduce((defe, curent) => defe + curent, 0)
+                  .toFixed(2)}{" "}
+                ₽
+              </h4>
+              <Link
+                to="/"
+                className="max-w-[221px] w-full h-[55px] rounded-3xl text-[white] border-2 border-solid border-[#FE5F1E] bg-[#FE5F1E] p-3"
+              >
+                Оплатить сейчас
+              </Link>
             </div>
           </div>
         </div>

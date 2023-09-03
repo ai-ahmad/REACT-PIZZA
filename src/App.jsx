@@ -1,76 +1,77 @@
-import { BrowserRouter, Route, Router, Routes } from "react-router-dom";
-import "./App.css";
-import HomePage from "./components/pages/HomePage";
+import React from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Corzina from "./components/component/Corzina";
-import axios from "axios";
-import { useEffect, useState } from "react";
+import HomePage from "./components/pages/HomePage";
 import Pages404 from "./components/component/404Pages";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 function App() {
-  let [product, setProduct] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  let [ShopProduct, setShop] = useState([]);
-  let [productLength, setProductLength] = useState(ShopProduct.length);
+  // Variables
+  // Backend URL variables
   let [URL, setURL] = useState("http://localhost:3000/All");
-  let [title, setTitle] = useState("Все пиццы");
-  useEffect(() => {
-    axios
-      .get(URL)
-      .then((res) => {
-        setProduct(res.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, [URL]);
+  // Product variables
+  let [product, setProduct] = useState([]);
+  // Filter product names variables
+  let [title, setTitle] = useState("Все");
+  // Local storage in product variables
+  let [ShopProduct, setShopProduct] = useState([]);
 
-  function upDate(e) {
+  // Filtration function
+  function filter(e) {
     if (e.target.value === "all") {
-      setURL(" http://localhost:3000/All");
-      setTitle("Все пиццы");
-    } else if (e.target.value === "closed") {
-      setURL("http://localhost:3000/Close");
-      setTitle("Закрытые пиццы");
-    } else if (e.target.value === "fas") {
-      setURL("http://localhost:3000/Ostriy");
-      setTitle("Острые пиццы");
-    } else if (e.target.value === "gril") {
-      setURL("http://localhost:3000/Gril");
-      setTitle("Грильные пиццы");
-    } else if (e.target.value === "vigtails") {
-      setURL("http://localhost:3000/Vigtails");
-      setTitle("Вегетарианская пиццы");
+      setURL("http://localhost:3000/All");
+      setTitle("Все");
     } else if (e.target.value === "meat") {
       setURL("http://localhost:3000/Meat");
-      setTitle("Мясные пиццы");
+      setTitle("Мясные");
+    } else if (e.target.value === "vigtails") {
+      setURL("http://localhost:3000/Vigtails");
+      setTitle("Вегетарианская");
+    } else if (e.target.value === "gril") {
+      setURL("http://localhost:3000/Gril");
+      setTitle("Гриль");
+    } else if (e.target.value === "fas") {
+      setURL("http://localhost:3000/Ostriy");
+      setTitle("Острые");
+    } else if (e.target.value === "closed") {
+      setURL("http://localhost:3000/Close");
+      setTitle("Закрытые");
     }
   }
-  function addItem(e) {
-    const itemShop = ShopProduct.find((item) => item.name === e.name);
-    if (itemShop) {
-      itemShop.number += 1;
-      alert(`${e.name} уже есть в корзине`);
+
+  // Integration with backend
+  useEffect(() => {
+    axios.get(URL).then((res) => setProduct(res.data));
+  }, [URL]);
+
+  function ItemAdd(e) {
+    const existingProduct = ShopProduct.find(
+      (cartItem) => cartItem.name === e.name
+    );
+
+    if (existingProduct) {
+      const updatedProduct = ShopProduct.map((cartItem) => {
+        if (cartItem.id === existingProduct.id) {
+          return { ...cartItem, number: cartItem.number + 1 };
+        } else {
+          return cartItem;
+        }
+      });
+
+      setShopProduct(updatedProduct);
+      localStorage.setItem("product", JSON.stringify(updatedProduct));
     } else {
       ShopProduct.push(e);
+      localStorage.setItem("product", JSON.stringify(ShopProduct));
     }
-    console.log(ShopProduct.length);
-  }
 
-  function delitItem(e) {
-    let newProduct = ShopProduct.filter((item) => item.id !== e.id);
-    setShop(newProduct);
-    console.log(ShopProduct);
-  }
-
-  function minus(e) {
-    if (e.number > 0) {
-      e.number -= 1;
-      console.log(ShopProduct);
-    }
-    if (e.number === 0) {
-      let newProduct = ShopProduct.filter((item) => item.id !== e.id);
-      setShop(newProduct);
-      console.log(ShopProduct);
+    if (ShopProduct.length > 0) {
+      console.log("Cart is not empty :)");
+    } else {
+      const values = localStorage.getItem("product");
+      const produc = JSON.parse(values);
+      setShopProduct(produc);
     }
   }
 
@@ -82,24 +83,14 @@ function App() {
             path="/"
             element={
               <HomePage
-                upDate={upDate}
-                product={product}
+                filter={filter}
                 title={title}
-                addItem={addItem}
-                productLength={productLength}
+                card={product}
+                addFunction={ItemAdd}
               />
             }
           />
-          <Route
-            path="/shop"
-            element={
-              <Corzina
-                ShopProduct={ShopProduct}
-                delitItem={delitItem}
-                minus={minus}
-              />
-            }
-          />
+          <Route path="/shop" element={<Corzina />} />
           <Route path="/404" element={<Pages404 />} />
         </Routes>
       </BrowserRouter>

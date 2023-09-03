@@ -1,8 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ productLength }) => {
-  console.log(productLength);
+const Navbar = () => {
   return (
     <nav className="flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -20,7 +19,7 @@ const Navbar = ({ productLength }) => {
         </div>
         <Link to="/shop" className="flex items-center gap-1">
           <img src="/icon/corzinka.svg" alt="" />
-          <button className="font-bold">{productLength}</button>
+          <button className="font-bold">0</button>
         </Link>
       </div>
     </nav>

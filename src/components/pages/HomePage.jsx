@@ -3,15 +3,15 @@ import HeaderComponent from "../loyaut/header";
 import FooterComponent from "../loyaut/Footer";
 import MainComponents from "../loyaut/main";
 
-const HomePage = ({ upDate, product, title, addItem, productLength }) => {
+const HomePage = ({ filter, title, card, addFunction }) => {
   return (
     <div className="bg-white container max-w-8xl rounded-xl my-auto p-5">
-      <HeaderComponent productLength={productLength} />
+      <HeaderComponent />
       <MainComponents
-        upDate={upDate}
-        product={product}
+        filter={filter}
         title={title}
-        addItem={addItem}
+        card={card}
+        addFunction={addFunction}
       />
       <FooterComponent />
     </div>
